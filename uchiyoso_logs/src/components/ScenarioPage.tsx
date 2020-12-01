@@ -1,6 +1,3 @@
-import StickyAppBar from "./StickyAppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import Link from "@material-ui/core/Link";
 import Container from "@material-ui/core/Container";
 import List from "@material-ui/core/List";
@@ -10,8 +7,8 @@ import {MenuBook} from "@material-ui/icons";
 import ListItemText from "@material-ui/core/ListItemText";
 import Avatar from "@material-ui/core/Avatar";
 import React from "react";
-import {useAppBarStyles} from "../Styles";
 import ScenarioLog from "../ScenarioLog";
+import MyAppBar from "./MyAppBar";
 
 interface Props {
     appBarTitle: string
@@ -19,20 +16,15 @@ interface Props {
 }
 
 export default function ScenarioPage(props: Props) {
-    const classes = useAppBarStyles();
     const {appBarTitle, scenarioLog} = props;
     const pubScenario = `${process.env.PUBLIC_URL}/${scenarioLog.id}`;
     const pubIcons = `${process.env.PUBLIC_URL}/icons`;
     return (
         <>
-            <StickyAppBar className={classes.appBar}>
-                <Toolbar>
-                    <Breadcrumbs className={classes.title}>
-                        <Link href="/" color="inherit" underline="none">{appBarTitle}</Link>
-                        <Link href={`/${scenarioLog.id}`} color="inherit" underline="none">{scenarioLog.name}</Link>
-                    </Breadcrumbs>
-                </Toolbar>
-            </StickyAppBar>
+            <MyAppBar>
+                <Link href="/" color="inherit" underline="none">{appBarTitle}</Link>
+                <Link href={`/${scenarioLog.id}`} color="inherit" underline="none">{scenarioLog.name}</Link>
+            </MyAppBar>
             <Container>
                 <List component="nav">
                     <ListItem button component="a" href={scenarioLog.scenarioUrl} target="_blank">

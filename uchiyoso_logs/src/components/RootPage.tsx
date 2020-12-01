@@ -1,6 +1,3 @@
-import StickyAppBar from "./StickyAppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import Link from "@material-ui/core/Link";
 import Container from "@material-ui/core/Container";
 import Box from "@material-ui/core/Box";
@@ -12,8 +9,8 @@ import FolderIcon from "@material-ui/icons/Folder";
 import ListItemText from "@material-ui/core/ListItemText";
 import React from "react";
 import useTheme from "@material-ui/core/styles/useTheme";
-import {useAppBarStyles} from "../Styles";
 import ScenarioLog from "../ScenarioLog";
+import MyAppBar from "./MyAppBar";
 
 interface Props {
     appBarTitle: string
@@ -22,17 +19,12 @@ interface Props {
 
 export default function RootPage(props: Props) {
     const theme = useTheme();
-    const classes = useAppBarStyles();
     const {appBarTitle, scenarioLogs} = props;
     return (
         <>
-            <StickyAppBar className={classes.appBar}>
-                <Toolbar>
-                    <Breadcrumbs className={classes.title}>
-                        <Link href="/" color="inherit" underline="none">{appBarTitle}</Link>
-                    </Breadcrumbs>
-                </Toolbar>
-            </StickyAppBar>
+            <MyAppBar>
+                <Link href="/" color="inherit" underline="none">{appBarTitle}</Link>
+            </MyAppBar>
             <Container>
                 <Box margin={theme.spacing(1)}>
                     <Typography>わー鯖の身内用のシナリオログ置き場です。</Typography>
