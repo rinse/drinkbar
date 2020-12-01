@@ -4,4 +4,5 @@ export default interface ScenarioLog {
     scenarioUrl: string
     scenarioOriginalName: string
     logs: {id: string, name: string, iconChar: string}[]
+    arts: string[]
 }
