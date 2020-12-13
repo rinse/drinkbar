@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  BucketName:
+    Type: String
+  LambdaEdgeFunctionName:
+    Type: String
+    Default: drinkbarBasicAuthentication
+  LambdaEdgeFunctionVersion:
+    Type: String
+  CertificateArn:
+    Type: String
+  DomainAlias:
+    Type: String
+
+Resources:
+  drinkbarS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+
+  drinkbarBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn:
+      - drinkbarS3Bucket
+      - drinkbarOriginAccessIdentity
+    Properties:
+      Bucket: !Ref drinkbarS3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: DrinkBarCloudFrontBucketPolicy
+            Action:
+              - s3:GetObject
+            Effect: Allow
+            Resource: !Sub "${drinkbarS3Bucket.Arn}/*"
+            Principal:
+              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${drinkbarOriginAccessIdentity}"
+
+  drinkbarDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - !Ref DomainAlias
+        Origins:
+          - DomainName: !Sub "${BucketName}.s3-ap-northeast-1.amazonaws.com"
+            Id: !Sub "S3-${BucketName}"
+            S3OriginConfig:
+              OriginAccessIdentity:
+                Fn::Join:
+                  - ""
+                  - - origin-access-identity/cloudfront/
+                    - !Ref drinkbarOriginAccessIdentity
+        Enabled: true
+        HttpVersion: http2
+        Comment: 'Some comment'
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub "S3-${BucketName}"
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # Managed-CachingDisabled
+          ViewerProtocolPolicy: redirect-to-https
+          LambdaFunctionAssociations:
+            - EventType: viewer-request
+              LambdaFunctionARN: !Sub "arn:aws:lambda:us-east-1:${AWS::AccountId}:function:${LambdaEdgeFunctionName}:${LambdaEdgeFunctionVersion}"
+#             LambdaFunctionARN: !Ref drinkbarLambdaEdge.Version
+        DefaultRootObject: index.html
+        PriceClass: PriceClass_200
+        Restrictions:
+          GeoRestriction:
+            RestrictionType: none
+        ViewerCertificate:
+#         CloudFrontDefaultCertificate: true
+          AcmCertificateArn: !Ref CertificateArn
+#         AcmCertificateArn: !GetAtt drinkbarCertificate.Arn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2019
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 10
+            ResponseCode: 200
+          - ErrorCode: 404
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 10
+            ResponseCode: 200
+
+  drinkbarOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "drinkbarOriginAccessIdentity"
