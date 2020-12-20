@@ -1,0 +1,104 @@
+Parameters:
+  CallbackURL:
+    Type: String
+  DefaultRedirectURI:
+    Type: String
+  LogoutURL:
+    Type: String
+  EnvironmentName:
+    Type: String
+
+Resources:
+  DrinkbarUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: 'verified_email'
+            Priority: 1
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+        InviteMessageTemplate:
+          EmailMessage: 'Your username is {username} and temporary password is {####}.'
+          EmailSubject: 'Your temporary password'
+          SMSMessage: 'Your username is {username} and temporary password is {####}.'
+      AliasAttributes:
+        - email
+        - preferred_username
+      AutoVerifiedAttributes:
+        - email # emailは自動的に検証し、保有を検証するうようにしておく
+      DeviceConfiguration:
+        ChallengeRequiredOnNewDevice: false
+        DeviceOnlyRememberedOnUserPrompt: false
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+      EmailVerificationMessage: 'Your verification code is {####}.'
+      EmailVerificationSubject: 'Your verification code'
+      MfaConfiguration: "OFF"
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          RequireUppercase: false
+          TemporaryPasswordValidityDays: 1
+      Schema:
+        - AttributeDataType: String
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Name: email
+          Required: true
+      SmsAuthenticationMessage: 'Your verification code is {####}.'
+      SmsVerificationMessage: 'Your verification code is {####}.'
+      UsernameConfiguration:
+        CaseSensitive: true
+      UserPoolAddOns:
+        AdvancedSecurityMode: AUDIT
+      UserPoolName: !Sub ${AWS::StackName}-user-pool
+#     UserPoolTags:
+#       Service: !Ref ${AWS::StackName}
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE # 認証リンクの送信は行わない、コード送信のみ送信
+        EmailMessage: 'Your verification code is {####}.'
+        EmailSubject: 'Your verification code'
+        SmsMessage: 'Your verification code is {####}.'
+
+  DrinkbarUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      CallbackURLs:
+        - !Ref CallbackURL
+      ClientName: !Sub ${AWS::StackName}-user-pool-client
+      DefaultRedirectURI: !Ref DefaultRedirectURI
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      # GenerateSecret: Boolean
+      LogoutURLs:
+        - !Ref LogoutURL
+      PreventUserExistenceErrors: ENABLED
+      ReadAttributes:
+        - email
+        - preferred_username
+      RefreshTokenValidity: 10 # リフレッシュトークンの生存日数
+      SupportedIdentityProviders:
+        - COGNITO # 今後拡張していくが、今はCognitoのみでOK
+      UserPoolId:
+        Ref: DrinkbarUserPool
+      WriteAttributes: # 外部のIDプロバイダー利用時に属性を書き込む可能性があるので使用している属性情報の書き込みを可能にしておく
+        - email
+        - preferred_username
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - openid
+
+  DrinkbarUserPoolDomain:
+    Type: 'AWS::Cognito::UserPoolDomain'
+    Properties:
+      UserPoolId: !Ref DrinkbarUserPool
+      Domain: !Sub drinkbar${EnvironmentName}
