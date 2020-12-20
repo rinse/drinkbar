@@ -49,7 +49,7 @@ function App() {
                 <RootPage appBarTitle={title} scenarioLogs={scenarioLogs} />
             </Route>
             {scenarioLogs.map(scenarioLog => (
-                <Route exact path={`/${scenarioLog.id}`}>
+                <Route exact path={`/${scenarioLog.id}`} key={scenarioLog.id}>
                     <ScenarioPage appBarTitle={title} scenarioLog={scenarioLog} />
                 </Route>
             ))}
