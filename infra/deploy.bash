@@ -20,7 +20,7 @@ if [ $service = "cloudfront" ]; then
     CERTIFICATE_ARN=$4
     aws cloudformation deploy \
         --stack-name drinkbar-stack${environmentName} \
-        --template-file cloudfront/cloudfront.yml \
+        --template-file cloudfront.yml \
         --parameter-overrides \
             BucketName=$domainName \
             DomainAlias=$domainName \
@@ -31,7 +31,7 @@ elif [ $service = "lambdaedge" ]; then
     aws cloudformation --region us-east-1 deploy \
         --stack-name drinkbar-stack${environmentName} \
         --capabilities CAPABILITY_NAMED_IAM \
-        --template-file cloudfront/lambdaedge.yml \
+        --template-file lambdaedge.yml \
         --parameter-overrides \
             domainName=$domainName
 elif [ $service = "cognito" ]; then
