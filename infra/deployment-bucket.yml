@@ -1,0 +1,14 @@
+Parameters:
+  EnvironmentName:
+    Type: String
+
+Resources:
+  drinkbarS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref drinkbar-deployment-${AWS::Region}${EnvironmentName}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true

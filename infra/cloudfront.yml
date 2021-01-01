@@ -1,17 +1,27 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
 Parameters:
-  BucketName:
+  EnvironmentName:
     Type: String
   LambdaEdgeFunctionName:
     Type: String
     Default: drinkbarBasicAuthentication
   LambdaEdgeFunctionVersion:
+    Type: Number
+    Default: 0
+  BucketName:   # !Sub "drinkbar-frontend${EnvironmentName}"
     Type: String
   CertificateArn:
     Type: String
+    Default: ''
   DomainAlias:
     Type: String
+    Default: ''
+
+Conditions:
+  IsDomainAliasNotDefined: !Equals [!Ref DomainAlias, '']
+  IsLambdaEdgeFunctionNotDefined: !Equals [!Ref LambdaEdgeFunctionVersion, 0]
+  IsCertificateArnNotDefined: !Equals [!Ref CertificateArn, '']
 
 Resources:
   drinkbarS3Bucket:
@@ -50,38 +60,37 @@ Resources:
     Properties:
       DistributionConfig:
         Aliases:
-          - !Ref DomainAlias
+          - !If [IsDomainAliasNotDefined, !Ref AWS::NoValue, !Ref DomainAlias]
         Origins:
           - DomainName: !Sub "${BucketName}.s3-ap-northeast-1.amazonaws.com"
             Id: !Sub "S3-${BucketName}"
             S3OriginConfig:
-              OriginAccessIdentity:
-                Fn::Join:
-                  - ""
-                  - - origin-access-identity/cloudfront/
-                    - !Ref drinkbarOriginAccessIdentity
+              OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${drinkbarOriginAccessIdentity}
         Enabled: true
         HttpVersion: http2
-        Comment: 'Some comment'
+        Comment: !Sub "drinkbarDistribution${EnvironmentName}"
         DefaultCacheBehavior:
           TargetOriginId: !Sub "S3-${BucketName}"
           CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # Managed-CachingDisabled
           ViewerProtocolPolicy: redirect-to-https
           LambdaFunctionAssociations:
-            - EventType: viewer-request
-              LambdaFunctionARN: !Sub "arn:aws:lambda:us-east-1:${AWS::AccountId}:function:${LambdaEdgeFunctionName}:${LambdaEdgeFunctionVersion}"
-#             LambdaFunctionARN: !Ref drinkbarLambdaEdge.Version
+            - Fn::If:
+                - IsLambdaEdgeFunctionNotDefined
+                - !Ref AWS::NoValue
+                - EventType: viewer-request
+                  LambdaFunctionARN: !Sub "arn:aws:lambda:us-east-1:${AWS::AccountId}:function:${LambdaEdgeFunctionName}:${LambdaEdgeFunctionVersion}"
         DefaultRootObject: index.html
         PriceClass: PriceClass_200
         Restrictions:
           GeoRestriction:
             RestrictionType: none
         ViewerCertificate:
-#         CloudFrontDefaultCertificate: true
-          AcmCertificateArn: !Ref CertificateArn
-#         AcmCertificateArn: !GetAtt drinkbarCertificate.Arn
-          SslSupportMethod: sni-only
-          MinimumProtocolVersion: TLSv1.2_2019
+          Fn::If:
+            - IsCertificateArnNotDefined
+            - !Ref AWS::NoValue
+            - AcmCertificateArn: !Ref CertificateArn
+              SslSupportMethod: sni-only
+              MinimumProtocolVersion: TLSv1.2_2019
         CustomErrorResponses:
           - ErrorCode: 403
             ResponsePagePath: /index.html
@@ -96,4 +105,4 @@ Resources:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: "drinkbarOriginAccessIdentity"
+        Comment: !Sub drinkbarOriginAccessIdentity${EnvironmentName}

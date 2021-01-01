@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+
+Resources:
+  drinkbarLambdaEdgeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub auth-lambdaedge-role${EnvironmentName}
+      Path: /service-role/
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - edgelambda.amazonaws.com
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  drinkbarLambdaEdge:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub drinkbarAuthentication${EnvironmentName}
+      Runtime: nodejs12.x
+      MemorySize: 128
+      Timeout: 3
+      Role: !GetAtt drinkbarLambdaEdgeRole.Arn
+      AutoPublishAlias: stg2
+      CodeUri: ./build
+      Handler: index.handler
+
+  logGroup:
+      Type: AWS::Logs::LogGroup
+      DependsOn:
+        - drinkbarLambdaEdge
+      Properties:
+        RetentionInDays: 1
+        LogGroupName: !Sub "/aws/lambda/${drinkbarLambdaEdge}"
+
+Outputs:
+  drinkbarLambdaEdge:
+    Value: !Ref drinkbarLambdaEdge
+    Export:
+      Name: drinkbarLambdaEdge

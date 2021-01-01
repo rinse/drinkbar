@@ -32,7 +32,7 @@ export default function RootPage(props: Props) {
                 </Box>
                 <List component="nav">
                     {scenarioLogs.map(scenario => (
-                        <ListItem button component="a" href={`/${scenario.id}`}>
+                        <ListItem button component="a" href={`/${scenario.id}`} key={scenario.id}>
                             <ListItemIcon>
                                 <FolderIcon />
                             </ListItemIcon>

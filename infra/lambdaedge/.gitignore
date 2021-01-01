@@ -1,0 +1,4 @@
+node_modules
+build
+lambdaedge-packaged.yml
+*.env
