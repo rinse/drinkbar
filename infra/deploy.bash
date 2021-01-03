@@ -3,10 +3,9 @@ set -eu
 
 function usage() {
     echo 'Usage: deploy.bash SERVICE [OPTIONS...]'
-    echo '  SERVICE: cognito          ENVIRONMENT_NAME DOMAIN_NAME'
-    echo '           lambdaedge       ENVIRONMENT_NAME'
-    echo '           cloudfront       ENVIRONMENT_NAME [LAMBDA_EDGE_FUNCTION_VERSION] [DOMAIN_ALIAS CERTIFICATE_ARN]'
-    echo '           static-resources ENVIRONMENT_NAME'
+    echo '  SERVICE: cognito    ENVIRONMENT_NAME DOMAIN_NAME'
+    echo '           lambdaedge ENVIRONMENT_NAME'
+    echo '           cloudfront ENVIRONMENT_NAME [LAMBDA_EDGE_FUNCTION_VERSION] [DOMAIN_ALIAS CERTIFICATE_ARN]'
     echo '  ENVIRONMENT_NAME:             A universally unique value which stands for an environment name.'
     echo '  DOMAIN_NAME:                  The domain name of the cloudfront or your own domain name which is alternate to it.'
     echo '  LAMBDA_EDGE_FUNCTION_VERSION: The version of the lambda edge function. The default value is 1.'
@@ -70,29 +69,12 @@ if [ $service = "cognito" ]; then
     domainName=$3
     aws cloudformation deploy \
         --stack-name drinkbar-cognito-stack${environmentName} \
-        --capabilities CAPABILITY_NAMED_IAM \
         --template-file cognito.yml \
         --parameter-overrides \
             CallbackURL="https://$domainName/code" \
             DefaultRedirectURI="https://$domainName/code" \
             LogoutURL="https://$domainName" \
             EnvironmentName=$environmentName
-    exit 0
-fi
-
-if [ $service = "static-resources" ]; then
-#    if [ -z ${3:-''} ]; then
-#        usage
-#        exit 1
-#    fi
-#    cognitoApplicationName=$3
-    aws cloudformation deploy \
-        --stack-name drinkbar-stack-static-resources${environmentName} \
-        --template-file static-resources.yml \
-        --parameter-overrides \
-            EnvironmentName=$environmentName \
-#                CognitoApplicationName=$cognitoApplicationName
-    :
     exit 0
 fi
 
