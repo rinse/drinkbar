@@ -28,7 +28,9 @@ export type Response =
           status: number
           statusDescription?: string
           headers?: Headers
-      }
+          body?: string
+          bodyEncoding?: 'text' | 'base64'
+}
 
 export type HttpMethod =
     | 'GET'

@@ -12,6 +12,7 @@ import {
 
 const LOGIN_SESSION_NAME = '_drinkbar_login_session'
 const OAUTH_CODE_PATH = '/code'
+const TOKEN_PATH = '/token'
 
 /*
  *
@@ -46,19 +47,24 @@ export async function handler(event: ViewerRequestEvent): Promise<Response> {
     }
     const cookies = getCookies(event)
     const sessionId = cookies[LOGIN_SESSION_NAME]
-    if (!sessionId) {
-        console.log('unauthorized', cookies)
+    const loggedIn = sessionId && await verifySession(sessionId)
+    if (getUri(event) == TOKEN_PATH) {
+        if (!loggedIn) {
+            return unauthorized()
+        }
+        return ok(JSON.stringify({idToken: loadIdToken(sessionId)}))
+    }
+    if (!loggedIn) {
         return redirectToLoginUrl()
     }
-    try {
-        await verifySession(sessionId)
-        return getRequest(event)
-    } catch (error) {
-        console.error(error)
-        return redirectToLoginUrl()
-    }
+    return getRequest(event)
 }
 
+/**
+ * @param code    OAuth code
+ * @param baseUrl Base url of the host server.
+ * @nothrow
+ */
 async function acceptCode(code: string, baseUrl: string): Promise<Response> {
     try {
         const token = await fetchToken(code, baseUrl)
@@ -109,23 +115,45 @@ async function fetchToken(code: string, host: string): Promise<Token> {
     return data
 }
 
+// sessionId = id_token
 function issueSessionId(token: Token) {
     console.log('token', token)
     return token.id_token
 }
 
+function loadIdToken(sessionId: string): string {
+    return sessionId
+}
+
 /**
- * @throws Error when sessionId is not valid.
+ * @param sessionId
+ * @returns boolean
+ * @nothrow
  */
 async function verifySession(sessionId: string) {
-    // sessionId = id_token here
-    const jwks = await fetch(COGNITO_JWKS_URL, {
-        headers: {
-            Accept: 'application/json',
-        },
-    }).then(a => a.json())
-    verifyJwt(sessionId, jwks, COGNITO_CLIENT_ID, COGNITO_ISS, 'id')
-    console.log('JWT verified', sessionId)
+    try {
+        const idToken = loadIdToken(sessionId)
+        const jwks = await fetch(COGNITO_JWKS_URL, {
+            headers: {
+                Accept: 'application/json',
+            },
+        }).then(a => a.json())
+        verifyJwt(idToken, jwks, COGNITO_CLIENT_ID, COGNITO_ISS, 'id')
+        console.log('JWT verified', idToken)
+        return true
+    } catch (error) {
+        console.error(error)
+        return false
+    }
+}
+
+function ok(body: string, encoding: 'text' | 'base64' = 'text'): Response {
+    return {
+        status: 200,
+        statusDescription: 'OK',
+        bodyEncoding: encoding,
+        body: body
+    }
 }
 
 function badRequest(): Response {
