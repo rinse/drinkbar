@@ -9,17 +9,17 @@ import FolderIcon from "@material-ui/icons/Folder";
 import ListItemText from "@material-ui/core/ListItemText";
 import React from "react";
 import useTheme from "@material-ui/core/styles/useTheme";
-import ScenarioLog from "../ScenarioLog";
 import MyAppBar from "./MyAppBar";
+import ScenariosMeta from '../ScenariosMeta'
 
 interface Props {
     appBarTitle: string
-    scenarioLogs: ScenarioLog[]
+    scenarioMeta: ScenariosMeta[]
 }
 
 export default function RootPage(props: Props) {
     const theme = useTheme();
-    const {appBarTitle, scenarioLogs} = props;
+    const {appBarTitle, scenarioMeta} = props;
     return (
         <>
             <MyAppBar>
@@ -31,12 +31,12 @@ export default function RootPage(props: Props) {
                     <Typography>自分がまだプレイしていないシナリオのログを読まないよう気を付けてください。</Typography>
                 </Box>
                 <List component="nav">
-                    {scenarioLogs.map(scenario => (
-                        <ListItem button component="a" href={`/${scenario.id}`} key={scenario.id}>
+                    {scenarioMeta.map(meta=> (
+                        <ListItem button component="a" href={`/${meta.id}`} key={meta.id}>
                             <ListItemIcon>
                                 <FolderIcon />
                             </ListItemIcon>
-                            <ListItemText>{scenario.name}</ListItemText>
+                            <ListItemText>{meta.name}</ListItemText>
                         </ListItem>
                     ))}
                 </List>

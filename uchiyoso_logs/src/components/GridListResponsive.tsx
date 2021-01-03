@@ -21,7 +21,6 @@ const f = (cols: Partial<Cols>): Cols => {
 };
 
 const getGridListCols = (width: Breakpoint, cols: Partial<Cols>) => {
-    console.log(width);
     const filledCols = f(cols);
     if (isWidthDown('xs', width)) {
         return filledCols.xs;
