@@ -70,5 +70,5 @@ cd infra
 5. Upload frontend code
 
 ```bash
-cd uchiyoso_logs && npm run deploy -- s3://drinkbar-ENVIRONMENT_NAME.esnir-nzmz.com,
+cd uchiyoso_logs && npm run deploy -- s3://drinkbar-ENVIRONMENT_NAME.esnir-nzmz.com
 ```
