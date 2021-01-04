@@ -109,23 +109,24 @@ async function fetchToken(code: string, host: string): Promise<Token> {
     return data
 }
 
-function issueSessionId(token: Token) {
+function issueSessionId(token: Token): string {
     console.log('token', token)
-    return token.id_token
+    return JSON.stringify(token)
 }
 
 /**
  * @throws Error when sessionId is not valid.
  */
 async function verifySession(sessionId: string) {
-    // sessionId = id_token here
+    const token: Token = JSON.parse(sessionId)
+    const idToken = token.id_token
     const jwks = await fetch(COGNITO_JWKS_URL, {
         headers: {
             Accept: 'application/json',
         },
     }).then(a => a.json())
-    verifyJwt(sessionId, jwks, COGNITO_CLIENT_ID, COGNITO_ISS, 'id')
-    console.log('JWT verified', sessionId)
+    verifyJwt(idToken, jwks, COGNITO_CLIENT_ID, COGNITO_ISS, 'id')
+    console.log('JWT verified', idToken)
 }
 
 function badRequest(): Response {
