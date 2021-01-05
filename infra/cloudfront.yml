@@ -106,3 +106,9 @@ Resources:
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Sub drinkbarOriginAccessIdentity${EnvironmentName}
+
+Outputs:
+  drinkbarDistributionDomainName:
+    Value: !GetAtt drinkbarDistribution.DomainName
+    Export:
+      Name: !Sub drinkbarDistributionDomainName${EnvironmentName}

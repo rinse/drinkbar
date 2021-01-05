@@ -3,14 +3,13 @@ set -eu
 
 function usage() {
     echo 'Usage: deploy.bash SERVICE [OPTIONS...]'
-    echo '  SERVICE: cognito    ENVIRONMENT_NAME DOMAIN_NAME'
+    echo '  SERVICE: cloudfront ENVIRONMENT_NAME [LAMBDA_EDGE_FUNCTION_VERSION] [DOMAIN_ALIAS CERTIFICATE_ARN]'
+    echo '           cognito    ENVIRONMENT_NAME [DOMAIN_ALIAS]'
     echo '           lambdaedge ENVIRONMENT_NAME'
-    echo '           cloudfront ENVIRONMENT_NAME [LAMBDA_EDGE_FUNCTION_VERSION] [DOMAIN_ALIAS CERTIFICATE_ARN]'
     echo '  ENVIRONMENT_NAME:             A universally unique value which stands for an environment name.'
-    echo '  DOMAIN_NAME:                  The domain name of the cloudfront or your own domain name which is alternate to it.'
     echo '  LAMBDA_EDGE_FUNCTION_VERSION: The version of the lambda edge function. The default value is 1.'
     echo '  DOMAIN_ALIAS:                 Your own domain name which is alternate to the cloudfront and the CERTIFICATE_ARN.'
-    echo '                                This value should match to DOMAIN_NAME.'
+    echo '                                This value should match to DOMAIN_ALIAS.'
     echo '  CERTIFICATE_ARN:              CERTIFICATE_ARN which is associated to DOMAIN_ALIAS.'
 }
 
@@ -62,19 +61,13 @@ if [ $service = "lambdaedge" ]; then
 fi
 
 if [ $service = "cognito" ]; then
-    if [ -z ${3:-''} ]; then
-        usage
-        exit 1
-    fi
-    domainName=$3
+    domainName=${3:-''}
     aws cloudformation deploy \
         --stack-name drinkbar-cognito-stack${environmentName} \
         --template-file cognito.yml \
         --parameter-overrides \
-            CallbackURL="https://$domainName/code" \
-            DefaultRedirectURI="https://$domainName/code" \
-            LogoutURL="https://$domainName" \
-            EnvironmentName=$environmentName
+            EnvironmentName=$environmentName \
+            DomainName=$domainName
     exit 0
 fi
 

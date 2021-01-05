@@ -11,7 +11,7 @@ Type the following if you want to use your own domain name.
 
 ```bash
 cd infra
-./deploy.bash cloudfront ENVIRONMENT_NAME 0 DOMAIN_NAME CERTIFICATE_ARN
+./deploy.bash cloudfront ENVIRONMENT_NAME 0 DOMAIN_ALIAS CERTIFICATE_ARN
 ```
 
 Otherwise, you specify only `ENVIRONMENT_NAME`.
@@ -21,17 +21,14 @@ cd infra
 ./deploy.bash cloudfront ENVIRONMENT_NAME
 ```
 
-When you don't use your own domain name, go see your distribution and take a note of `Domain Name`.
-Your distribution is found in a stack named `drinkbar-stack-cloudfront-ENVIRONMENT_NAME`.
-
 2. Deploy cognito
 
 Type the following to deploy cognito-related resources.
-`DOMAIN_NAME` will be your own domain name, or the domain name of your distribution.
+`DOMAIN_ALIAS` will be your own domain name.
 
 ```bash
 cd infra
-./deploy.bash cognito ENVIRONMENT_NAME DOMAIN_NAME
+./deploy.bash cognito ENVIRONMENT_NAME [DOMAIN_ALIAS]
 ```
 
 3. Deploy lambdaedge
@@ -43,13 +40,17 @@ Go to Cognito `drinkbar-cognito-stack-ENVIRONMENT_NAME-user-pool` and find the f
 1. `COGNITO_CLIENT_ID` is the cognito client id.
 2. `LOGIN_URL` is the url found by clicking `Launch Hosted UI`.
 3. `TOKEN_URI` is `https://drinkbar-ENVIRONMENT_NAME.auth.ap-northeast-1.amazoncognito.com/oauth2/token`
+4. `COGNITO_ISS` is an iss claim.
+5. `COGNITO_JWKS_URL` is a url which indicates JWKs.
+
+Type the following and deploy a lambda function.
 
 ```bash
 pushd infra/lambdaedge
 ./deploy.bash lambdaedge ENVIRONMENT_NAME
 ```
 
-4. Associate lambdaedge to cloudfront.
+4. Associate the lambdaedge function to the cloudfront.
 
 Update your distribution with the version number.
 `1` is the first number, you'll have to increase it when you update lambdaedge code.
@@ -70,5 +71,5 @@ cd infra
 5. Upload frontend code
 
 ```bash
-cd uchiyoso_logs && npm run deploy -- s3://drinkbar-ENVIRONMENT_NAME.esnir-nzmz.com
+cd uchiyoso_logs && npm run deploy -- s3://drinkbar-frontend-ENVIRONMENT_NAME
 ```

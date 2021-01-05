@@ -48,4 +48,4 @@ Outputs:
   drinkbarLambdaEdge:
     Value: !Ref drinkbarLambdaEdge
     Export:
-      Name: drinkbarLambdaEdge
+      Name: !Sub drinkbarLambdaEdge${EnvironmentName}
