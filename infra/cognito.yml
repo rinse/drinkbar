@@ -1,12 +1,11 @@
 Parameters:
-  CallbackURL:
-    Type: String
-  DefaultRedirectURI:
-    Type: String
-  LogoutURL:
-    Type: String
   EnvironmentName:
     Type: String
+  DomainName:
+    Type: String
+
+Conditions:
+  IsDomainNameNotDefined: !Equals [!Ref DomainName, '']
 
 Resources:
   DrinkbarUserPool:
@@ -68,9 +67,24 @@ Resources:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       CallbackURLs:
-        - !Ref CallbackURL
+        - Fn::If:
+          - IsDomainNameNotDefined
+          - Fn::Join:
+            - ''
+            - - 'https://'
+              - Fn::ImportValue: !Sub drinkbarDistributionDomainName${EnvironmentName}
+              - '/code'
+          - !Sub https://${DomainName}/code
       ClientName: !Sub ${AWS::StackName}-user-pool-client
-      DefaultRedirectURI: !Ref DefaultRedirectURI
+      DefaultRedirectURI:
+        Fn::If:
+          - IsDomainNameNotDefined
+          - Fn::Join:
+            - ''
+            - - 'https://'
+              - Fn::ImportValue: !Sub drinkbarDistributionDomainName${EnvironmentName}
+              - '/code'
+          - !Sub https://${DomainName}/code
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_ADMIN_USER_PASSWORD_AUTH
@@ -78,7 +92,13 @@ Resources:
         - ALLOW_REFRESH_TOKEN_AUTH
       # GenerateSecret: Boolean
       LogoutURLs:
-        - !Ref LogoutURL
+        - Fn::If:
+          - IsDomainNameNotDefined
+          - Fn::Join:
+            - ''
+            - - 'https://'
+              - Fn::ImportValue: !Sub drinkbarDistributionDomainName${EnvironmentName}
+          - !Sub https://${DomainName}
       PreventUserExistenceErrors: ENABLED
       ReadAttributes:
         - email
