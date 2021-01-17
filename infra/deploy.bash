@@ -3,7 +3,7 @@ set -eu
 
 function usage() {
     echo 'Usage: deploy.bash SERVICE [OPTIONS...]'
-    echo '  SERVICE: cloudfront ENVIRONMENT_NAME [LAMBDA_EDGE_FUNCTION_VERSION] [DOMAIN_ALIAS CERTIFICATE_ARN]'
+    echo '  SERVICE: cloudfront ENVIRONMENT_NAME [DOMAIN_ALIAS CERTIFICATE_ARN]'
     echo '           cognito    ENVIRONMENT_NAME [DOMAIN_ALIAS]'
     echo '           lambdaedge ENVIRONMENT_NAME'
     echo '  ENVIRONMENT_NAME:             A universally unique value which stands for an environment name.'
@@ -22,16 +22,30 @@ service=$1
 environmentName=${2:+"-$2"}
 
 if [ $service = "cloudfront" ]; then
-    lambdaEdgeFunctionVersion=${3:-0}
-    domainAlias=${4:-''}
-    certificateArn=${5:-''}
+    lambdaedgeStackName=drinkbar-stack-lambdaedge${environmentName}
+    lambdaedgeStackId=$(
+        aws cloudformation --region us-east-1 describe-stacks \
+                --stack-name $lambdaedgeStackName \
+            | jq -r '.Stacks[0].StackId' \
+            || echo '')
+    lambdaedgeOutputs=$(
+        aws cloudformation --region us-east-1 list-exports \
+                --no-paginate \
+                --query "Exports[?ExportingStackId==\`${lambdaedgeStackId}\`]" \
+            | jq -c 'from_entries')
+    if [ $lambdaedgeOutputs = "{}" ]; then
+        lambdaEdgeVersion=""
+    else
+        lambdaEdgeVersion=$(echo $lambdaedgeOutputs | jq -r ".[\"drinkbarLambdaEdgeVersion${environmentName}\"]")
+    fi
+    domainAlias=${3:-''}
+    certificateArn=${4:-''}
     aws cloudformation deploy \
         --stack-name drinkbar-stack-cloudfront${environmentName} \
         --template-file cloudfront.yml \
         --parameter-overrides \
             EnvironmentName=$environmentName \
-            LambdaEdgeFunctionName=drinkbarAuthentication${environmentName} \
-            LambdaEdgeFunctionVersion=$lambdaEdgeFunctionVersion \
+            LambdaEdgeVersion=$lambdaEdgeVersion \
             BucketName=drinkbar-frontend${environmentName} \
             DomainAlias=$domainAlias \
             CertificateArn=$certificateArn

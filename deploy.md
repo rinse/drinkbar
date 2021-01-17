@@ -11,7 +11,7 @@ Type the following if you want to use your own domain name.
 
 ```bash
 cd infra
-./deploy.bash cloudfront ENVIRONMENT_NAME 0 DOMAIN_ALIAS CERTIFICATE_ARN
+./deploy.bash cloudfront ENVIRONMENT_NAME DOMAIN_ALIAS CERTIFICATE_ARN
 ```
 
 Otherwise, you specify only `ENVIRONMENT_NAME`.
@@ -42,20 +42,16 @@ pushd infra/lambdaedge
 
 4. Associate the lambdaedge function to the cloudfront.
 
-Update your distribution with the version number.
-`1` is the first number, you'll have to increase it when you update lambdaedge code.
-
-When you have your own domain name, type following.
+Update your distribution. It will find a version of lambda edge and associate it for you.
 
 ```bash
 cd infra
-./deploy.bash cloudfront ENVIRONMENT_NAME 1 DOMAIN_NAME CERTIFICATE_ARN
+./deploy.bash cloudfront ENVIRONMENT_NAME DOMAIN_NAME CERTIFICATE_ARN
 ```
-Otherwise, specify the version number only.
 
 ```bash
 cd infra
-./deploy.bash cloudfront ENVIRONMENT_NAME 1
+./deploy.bash cloudfront ENVIRONMENT_NAME
 ```
 
 5. Upload frontend code
