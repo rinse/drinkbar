@@ -63,8 +63,7 @@ if [ $service = "lambdaedge" ]; then
     cp ${environmentName#-}.env ./build/.env
     npm install && npm run build
     rm -fr ./build/node_modules/.bin
-    aws s3 --region us-east-1 mb s3://drinkbar-deployment-us-east-1${environmentName} \
-        || echo "Using an existing bucket; s3://drinkbar-deployment-us-east-1${environmentName}"
+    aws s3 --region us-east-1 mb s3://drinkbar-deployment-us-east-1${environmentName}
     aws cloudformation package \
         --template-file lambdaedge.yml \
         --output-template-file lambdaedge-packaged.yml \
