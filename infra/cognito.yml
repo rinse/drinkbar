@@ -122,3 +122,39 @@ Resources:
     Properties:
       UserPoolId: !Ref DrinkbarUserPool
       Domain: !Sub drinkbar${EnvironmentName}
+
+Outputs:
+  CognitoClientId:
+    Value: !Ref DrinkbarUserPoolClient
+    Export:
+      Name: !Sub DrinkbarUserPoolClient${EnvironmentName}
+  LoginUrl:
+    Value:
+      Fn::Join:
+        - ''
+        - - !Sub https://${DrinkbarUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login
+          - !Sub '?client_id=${DrinkbarUserPoolClient}'
+          - !Sub '&response_type=code'
+          - !Sub '&redirect_uri='
+          - Fn::If:
+            - IsDomainNameNotDefined
+            - Fn::Join:
+              - ''
+              - - 'https://'
+                - Fn::ImportValue: !Sub drinkbarDistributionDomainName${EnvironmentName}
+                - '/code'
+            - !Sub https://${DomainName}/code
+    Export:
+      Name: !Sub DrinkbarLoginUrl${EnvironmentName}
+  TokenUri:
+    Value: !Sub https://${DrinkbarUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/oauth2/token
+    Export:
+      Name: !Sub DrinkbarTokenUri${EnvironmentName}
+  CognitoIss:
+    Value: !GetAtt DrinkbarUserPool.ProviderURL
+    Export:
+      Name: !Sub DrinkbarCognitoIss${EnvironmentName}
+  CognitoJwksUrl:
+    Value: !Join ['', [!GetAtt DrinkbarUserPool.ProviderURL, '/.well-known/jwks.json']]
+    Export:
+      Name: !Sub DrinkbarCognitoJwksUrl${EnvironmentName}
