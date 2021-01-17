@@ -57,3 +57,5 @@ jobs:
           npm -g i create-react-app
           npm install
           npm run deploy -- s3://drinkbar-frontend-$ENVIRONMENT_NAME
+      - name: Deployment of static resources
+        run: aws s3 sync --delete s3://drinkbar-scenario-resources-$ENVIRONMENT_NAME s3://drinkbar-frontend-$ENVIRONMENT_NAME/scenarios
