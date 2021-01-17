@@ -39,6 +39,23 @@ if [ $service = "cloudfront" ]; then
 fi
 
 if [ $service = "lambdaedge" ]; then
+    # Generate a dotenv file for this environment.
+    cognitoStackName=drinkbar-cognito-stack${environmentName}
+    cognitoStackId=$(aws cloudformation describe-stacks --stack-name $cognitoStackName | jq -r '.Stacks[0].StackId')
+    cognitoOutputs=$(aws cloudformation list-exports --no-paginate --query "Exports[?ExportingStackId==\`${cognitoStackId}\`]" | jq -c 'from_entries')
+    cognitoClientId=$(echo $cognitoOutputs | jq -r ".[\"DrinkbarUserPoolClient${environmentName}\"]")
+    loginUrl=$(echo $cognitoOutputs | jq -r ".[\"DrinkbarLoginUrl${environmentName}\"]")
+    tokenUri=$(echo $cognitoOutputs | jq -r ".[\"DrinkbarTokenUri${environmentName}\"]")
+    cognitoIss=$(echo $cognitoOutputs | jq -r ".[\"DrinkbarCognitoIss${environmentName}\"]")
+    cognitoJwksUrl=$(echo $cognitoOutputs | jq -r ".[\"DrinkbarCognitoJwksUrl${environmentName}\"]")
+    cat <<- EOF > lambdaedge/${environmentName#-}.env
+		COGNITO_CLIENT_ID=$cognitoClientId
+		LOGIN_URL=$loginUrl
+		TOKEN_URI=$tokenUri
+		COGNITO_ISS=$cognitoIss
+		COGNITO_JWKS_URL=$cognitoJwksUrl
+	EOF
+
     pushd lambdaedge
     rm -fr build && mkdir build
     npm clean-install --only=prod && cp -r node_modules ./build/

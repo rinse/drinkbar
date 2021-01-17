@@ -33,16 +33,6 @@ cd infra
 
 3. Deploy lambdaedge
 
-Copy the `lambdaedge/.env.sample` file as `lambdaedge/ENVIRONMENT_NAME.env` and fill it.
-
-Go to Cognito `drinkbar-cognito-stack-ENVIRONMENT_NAME-user-pool` and find the following values.
-
-1. `COGNITO_CLIENT_ID` is the cognito client id.
-2. `LOGIN_URL` is the url found by clicking `Launch Hosted UI`.
-3. `TOKEN_URI` is `https://drinkbar-ENVIRONMENT_NAME.auth.ap-northeast-1.amazoncognito.com/oauth2/token`
-4. `COGNITO_ISS` is an iss claim.
-5. `COGNITO_JWKS_URL` is a url which indicates JWKs.
-
 Type the following and deploy a lambda function.
 
 ```bash
