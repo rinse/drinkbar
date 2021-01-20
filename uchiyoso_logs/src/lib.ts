@@ -10,18 +10,22 @@ function useRemoteFile<T>(mapper: (response: Response) => Promise<T>, url: strin
         })().catch(error => {
             console.error(`Failed to fetch ${url}`, error)
         })
-    }, [])
+    }, [init, mapper, url])
     return data
+}
+
+function getJson(data: Response): Promise<any> {
+    return data.json()
 }
 
 export function useScenariosMeta(): ScenariosMeta[] {
     const metaFileName = `${process.env.PUBLIC_URL}/scenarios/meta.json`
-    const meta = useRemoteFile(data => data.json(), metaFileName)
+    const meta = useRemoteFile(getJson, metaFileName)
     return meta ?? []
 }
 
 export function useScenarioMeta(scenarioId: string): ScenarioMeta {
     const playerMetaKey = `${process.env.PUBLIC_URL}/scenarios/${scenarioId}/meta.json`
-    const meta = useRemoteFile(data => data.json(), playerMetaKey)
+    const meta = useRemoteFile(getJson, playerMetaKey)
     return meta ?? { logs: [], images: [] }
 }

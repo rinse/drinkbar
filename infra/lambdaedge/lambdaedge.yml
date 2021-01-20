@@ -32,9 +32,14 @@ Resources:
       MemorySize: 128
       Timeout: 3
       Role: !GetAtt drinkbarLambdaEdgeRole.Arn
-      AutoPublishAlias: stg2
       CodeUri: ./build
       Handler: index.handler
+
+  drinkbarLambdaEdgeVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref drinkbarLambdaEdge
+      Description: !Ref EnvironmentName
 
   logGroup:
       Type: AWS::Logs::LogGroup
@@ -45,7 +50,7 @@ Resources:
         LogGroupName: !Sub "/aws/lambda/${drinkbarLambdaEdge}"
 
 Outputs:
-  drinkbarLambdaEdge:
-    Value: !Ref drinkbarLambdaEdge
+  drinkbarLambdaEdgeVersion:
+    Value: !Ref drinkbarLambdaEdgeVersion
     Export:
-      Name: !Sub drinkbarLambdaEdge${EnvironmentName}
+      Name: !Sub drinkbarLambdaEdgeVersion${EnvironmentName}

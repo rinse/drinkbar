@@ -3,12 +3,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
   EnvironmentName:
     Type: String
-  LambdaEdgeFunctionName:
+  LambdaEdgeVersion:
     Type: String
-    Default: drinkbarBasicAuthentication
-  LambdaEdgeFunctionVersion:
-    Type: Number
-    Default: 0
+    Default: ''
   BucketName:   # !Sub "drinkbar-frontend${EnvironmentName}"
     Type: String
   CertificateArn:
@@ -20,7 +17,7 @@ Parameters:
 
 Conditions:
   IsDomainAliasNotDefined: !Equals [!Ref DomainAlias, '']
-  IsLambdaEdgeFunctionNotDefined: !Equals [!Ref LambdaEdgeFunctionVersion, 0]
+  IsLambdaEdgeFunctionNotDefined: !Equals [!Ref LambdaEdgeVersion, '']
   IsCertificateArnNotDefined: !Equals [!Ref CertificateArn, '']
 
 Resources:
@@ -78,7 +75,7 @@ Resources:
                 - IsLambdaEdgeFunctionNotDefined
                 - !Ref AWS::NoValue
                 - EventType: viewer-request
-                  LambdaFunctionARN: !Sub "arn:aws:lambda:us-east-1:${AWS::AccountId}:function:${LambdaEdgeFunctionName}:${LambdaEdgeFunctionVersion}"
+                  LambdaFunctionARN: !Ref LambdaEdgeVersion
         DefaultRootObject: index.html
         PriceClass: PriceClass_200
         Restrictions:
@@ -106,6 +103,16 @@ Resources:
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Sub drinkbarOriginAccessIdentity${EnvironmentName}
+
+  drinkbarScenarioResourcesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub drinkbar-scenario-resources${EnvironmentName}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
 Outputs:
   drinkbarDistributionDomainName:
