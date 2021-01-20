@@ -10,7 +10,7 @@ function useRemoteFile<T>(mapper: (response: Response) => Promise<T>, url: strin
         })().catch(error => {
             console.error(`Failed to fetch ${url}`, error)
         })
-    }, [])
+    }, [init, mapper, url])
     return data
 }
 

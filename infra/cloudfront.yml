@@ -104,6 +104,16 @@ Resources:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Sub drinkbarOriginAccessIdentity${EnvironmentName}
 
+  drinkbarScenarioResourcesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub drinkbar-scenario-resources${EnvironmentName}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
 Outputs:
   drinkbarDistributionDomainName:
     Value: !GetAtt drinkbarDistribution.DomainName

@@ -48,7 +48,8 @@ if [ $service = "cloudfront" ]; then
             LambdaEdgeVersion=$lambdaEdgeVersion \
             BucketName=drinkbar-frontend${environmentName} \
             DomainAlias=$domainAlias \
-            CertificateArn=$certificateArn
+            CertificateArn=$certificateArn \
+        --no-fail-on-empty-changeset
     exit 0
 fi
 
@@ -88,7 +89,8 @@ if [ $service = "lambdaedge" ]; then
         --capabilities CAPABILITY_NAMED_IAM \
         --template-file lambdaedge-packaged.yml \
         --parameter-overrides \
-            EnvironmentName=$environmentName
+            EnvironmentName=$environmentName \
+        --no-fail-on-empty-changeset
     exit 0
 fi
 
@@ -99,7 +101,8 @@ if [ $service = "cognito" ]; then
         --template-file cognito.yml \
         --parameter-overrides \
             EnvironmentName=$environmentName \
-            DomainName=$domainName
+            DomainName=$domainName \
+        --no-fail-on-empty-changeset
     exit 0
 fi
 
