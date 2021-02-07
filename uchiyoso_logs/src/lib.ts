@@ -2,30 +2,49 @@ import {useEffect, useState} from 'react'
 import ScenariosMeta from './ScenariosMeta'
 import ScenarioMeta from './ScenarioMeta'
 
-function useRemoteFile<T>(mapper: (response: Response) => Promise<T>, url: string, init?: RequestInit): T | undefined {
-    const [data, setData] = useState<any>()
-    useEffect(() => {
-        void (async () => {
-            setData(await fetch(url, init).then(data => mapper(data)))
-        })().catch(error => {
-            console.error(`Failed to fetch ${url}`, error)
-        })
-    }, [init, mapper, url])
-    return data
+interface Resource<T> {
+    data: T
+    isLoading: boolean
+    error?: Error
 }
 
-function getJson(data: Response): Promise<any> {
-    return data.json()
+function useRemoteResource<T, U extends T>(initialState: T, fetchResource: () => Promise<U>): Resource<T> {
+    const [data, setData] = useState<T>(initialState)
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState<Error | undefined>(undefined)
+    useEffect(() => {
+        void (async () => {
+            try {
+                setIsLoading(true)
+                setData(await fetchResource())
+            } catch (e) {
+                setError(e)
+            } finally {
+                setIsLoading(false)
+            }
+        })()
+    })
+    return {data, isLoading, error}
 }
 
 export function useScenariosMeta(): ScenariosMeta[] {
     const metaFileName = `${process.env.PUBLIC_URL}/scenarios/meta.json`
-    const meta = useRemoteFile(getJson, metaFileName)
-    return meta ?? []
+    const {data, error} = useRemoteResource([], async () => {
+        return fetch(metaFileName).then(data => data.json())
+    })
+    if (error) {
+        console.error(`Failed to fetch ${metaFileName}`, error)
+    }
+    return data
 }
 
 export function useScenarioMeta(scenarioId: string): ScenarioMeta {
     const playerMetaKey = `${process.env.PUBLIC_URL}/scenarios/${scenarioId}/meta.json`
-    const meta = useRemoteFile(getJson, playerMetaKey)
-    return meta ?? { logs: [], images: [] }
+    const {data, error} = useRemoteResource({ logs: [], images: [] }, async () => {
+        return fetch(playerMetaKey).then(data => data.json())
+    })
+    if (error) {
+        console.error(`Failed to fetch ${playerMetaKey}`, error)
+    }
+    return data
 }
